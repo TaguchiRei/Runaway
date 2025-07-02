@@ -4,6 +4,7 @@ public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private Animator _animator;
     [SerializeField] private Rigidbody2D _rigidbody;
+    [SerializeField] private GroundManager _groundManager;
 
     [SerializeField] private float _jumpPower = 5f;
 
@@ -22,7 +23,7 @@ public class PlayerMove : MonoBehaviour
         if (_isSliding)
         {
             _slideTimer += Time.deltaTime;
-            if (_slideTimer >= 5f)
+            if (_slideTimer >= 3f)
             {
                 _isSliding = false;
                 _animator.SetTrigger("Cancel");
@@ -70,5 +71,16 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            _animator.speed = 0f;
+            _rigidbody.simulated = false;
+            _groundManager.GameOver();
+        }
+    }
 }
+
 
