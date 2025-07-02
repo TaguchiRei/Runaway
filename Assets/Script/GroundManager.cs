@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,24 +9,16 @@ public class GroundManager : MonoBehaviour
 
 
     private List<GameObject> _groundInstance;
-    private float _groundHeight;
+    private int _groundHeight;
 
     private void Awake()
     {
         _groundInstance = new();
-        foreach (var obj in _groundObjects)
+        _groundHeight = 0;
+        GenerateFirstGround();
+        for (var i = 1; i < 4; i++)
         {
-            for (var i = 0; i < 4; i++)
-            {
-                _groundInstance.Add(Instantiate(obj, Vector2.zero, Quaternion.identity));
-            }
-        }
-        // ƒVƒƒƒbƒtƒ‹
-        System.Random rng = new System.Random();
-        for (int i = _groundInstance.Count - 1; i > 0; i--)
-        {
-            int j = rng.Next(i + 1);
-            (_groundInstance[i], _groundInstance[j]) = (_groundInstance[j], _groundInstance[i]);
+            GenerateGround();
         }
     }
 
@@ -36,10 +27,45 @@ public class GroundManager : MonoBehaviour
         for (var i = 0; i < _groundInstance.Count; i++)
         {
             _groundInstance[i].transform.position += Vector3.left * _speed;
-        }        
+        }
+        if (_groundInstance[0].transform.position.x < -_groundSize.x)
+        {
+            Destroy(_groundInstance[0]);
+            _groundInstance.RemoveAt(0);
+            GenerateGround();
+        }
     }
 
-    private void GroundSetPosition()
+    private void GenerateFirstGround()
     {
+        _groundInstance.Add(Instantiate(_groundObjects[0], Vector3.zero, Quaternion.identity));
     }
+
+    private void GenerateGround()
+    {
+        var groundType = Random.Range(0, _groundObjects.Length);
+        var ground = Instantiate(_groundObjects[groundType]);
+        var groundX = _groundInstance[_groundInstance.Count - 1].transform.position.x + _groundSize.x;
+        Vector3 pos;
+
+        switch (ground.tag)
+        {
+            case "Ground":
+                pos = new(groundX, _groundSize.y * _groundHeight,0);
+                ground.transform.position = pos;
+                break;
+            case "SlopeDown":
+                _groundHeight--;
+                pos = new(groundX, _groundSize.y * _groundHeight, 0);
+                ground.transform.position = pos;
+                break;
+            case "SlopeUp":
+                pos = new(groundX, _groundSize.y * _groundHeight, 0);
+                ground.transform.position = pos;
+                _groundHeight++;
+                break;
+        }
+        _groundInstance.Add(ground);
+    }
+
 }
